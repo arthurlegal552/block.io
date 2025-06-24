@@ -43,7 +43,7 @@ dirLight.castShadow = true;
 scene.add(dirLight);
 
 // 🧱 Chão com textura repetida
-const floorTex = new THREE.TextureLoader().load('floor.jpg');
+const floorTex = new THREE.TextureLoader().load('space.png');
 floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
 floorTex.repeat.set(20, 20);
 const floor = new THREE.Mesh(
