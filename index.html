@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>FPS com Controle e Chão</title>
+  <title>FPS com braços, chão e movimento</title>
   <script type="importmap">
   {
     "imports": {
@@ -20,86 +20,80 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // 🔧 Cena, câmera e renderer
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-camera.position.set(0,1.6,0);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 1.6, 0); // Altura dos olhos
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth, innerHeight);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 // 🌞 Iluminação
-scene.add(new THREE.AmbientLight(0xffffff,0.5));
-const dir = new THREE.DirectionalLight(0xffffff,0.8);
-dir.position.set(5,10,7);
-scene.add(dir);
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
 
 // 🧱 Chão com textura repetida
 const floorTex = new THREE.TextureLoader().load('floor.jpg');
 floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-floorTex.repeat.set(10,10);
+floorTex.repeat.set(20, 20);
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(100,100),
-  new THREE.MeshStandardMaterial({map:floorTex})
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ map: floorTex })
 );
-floor.rotation.x = -Math.PI/2;
+floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
-// 📦 Controles FPS + WASD
+// 🎯 PointerLock + WASD
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
+
 document.body.addEventListener('click', () => controls.lock());
 
-const movement = {forward:false,back:false,left:false,right:false};
+const movement = { forward: false, back: false, left: false, right: false };
 document.addEventListener('keydown', e => {
-  switch(e.code) {
-    case 'KeyW': movement.forward = true; break;
-    case 'KeyS': movement.back = true; break;
-    case 'KeyA': movement.left = true; break;
-    case 'KeyD': movement.right = true; break;
-  }
+  if (e.code === 'KeyW') movement.forward = true;
+  if (e.code === 'KeyS') movement.back = true;
+  if (e.code === 'KeyA') movement.left = true;
+  if (e.code === 'KeyD') movement.right = true;
 });
 document.addEventListener('keyup', e => {
-  switch(e.code) {
-    case 'KeyW': movement.forward = false; break;
-    case 'KeyS': movement.back = false; break;
-    case 'KeyA': movement.left = false; break;
-    case 'KeyD': movement.right = false; break;
-  }
+  if (e.code === 'KeyW') movement.forward = false;
+  if (e.code === 'KeyS') movement.back = false;
+  if (e.code === 'KeyA') movement.left = false;
+  if (e.code === 'KeyD') movement.right = false;
 });
 
-// 🎮 Modelo de braços animados
+// 💪 Braços animados
 let mixer;
 new GLTFLoader().load('./ct_fps_hand_for_roblox.glb', gltf => {
   const arms = gltf.scene;
-  arms.position.set(0,-1.5,-0.5);
+  arms.position.set(0, -1.5, -0.5);
   arms.rotation.y = Math.PI;
   camera.add(arms);
   mixer = new THREE.AnimationMixer(arms);
-  if (gltf.animations.length) {
+  if (gltf.animations.length > 0) {
     mixer.clipAction(gltf.animations[0]).play();
   }
 });
 
-// ⏱️ Animação com clock
+// ⏱️ Loop
 const clock = new THREE.Clock();
-const speed = 5; // unidades por segundo
+const speed = 5;
 
 function animate() {
   const dt = clock.getDelta();
 
-  // atualização do mixer
   if (mixer) mixer.update(dt);
 
-  // movimentação FPS
   if (controls.isLocked) {
     const dir = new THREE.Vector3();
     if (movement.forward) dir.z -= 1;
-    if (movement.back) dir.z += 1;
-    if (movement.left) dir.x -= 1;
-    if (movement.right) dir.x += 1;
-
+    if (movement.back)    dir.z += 1;
+    if (movement.left)    dir.x -= 1;
+    if (movement.right)   dir.x += 1;
     if (dir.length()) {
       dir.normalize().applyQuaternion(camera.quaternion);
       controls.getObject().position.addScaledVector(dir, speed * dt);
@@ -111,11 +105,11 @@ function animate() {
 }
 animate();
 
-// 🔧 Responsividade
+// 🔧 Redimensionamento
 window.addEventListener('resize', () => {
-  camera.aspect = innerWidth/innerHeight;
+  camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 </script>
 </body>
