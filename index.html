@@ -55,7 +55,7 @@ const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
 document.body.addEventListener('click', () => controls.lock());
 
-new GLTFLoader().load('./ct_fps_hand_for_roblox.glb', gltf => {
+new GLTFLoader().load('fps_arms.glb', gltf => {
   const arms = gltf.scene;
   arms.position.set(0,-1.5,-0.5);
   arms.rotation.y = Math.PI;
