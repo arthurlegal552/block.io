@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
-  <title>FPS com iluminação melhorada</title>
+  <title>FPS Completo com Gravidade</title>
   <script type="importmap">
   {
     "imports": {
@@ -18,103 +18,127 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-// 🔧 Cena, câmera e renderer
+// Cena
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.6, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+// Câmera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,1.6,0); // olhos
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1;
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-// 🌞 Iluminação
-scene.add(new THREE.AmbientLight(0xffffff, 1.5)); // luz difusa geral
-const hemi = new THREE.HemisphereLight(0xb1e1ff, 0xb97a20, 1); // luz ambiente (céu/solo) :contentReference[oaicite:1]{index=1}
+// Iluminação
+scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+const hemi = new THREE.HemisphereLight(0xb1e1ff, 0xb97a20, 1);
 scene.add(hemi);
-
-const dirLight = new THREE.DirectionalLight(0xffffff, 2); // luz principal (sombra)
-dirLight.position.set(5, 10, 7);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+dirLight.position.set(5,10,7);
 dirLight.castShadow = true;
 scene.add(dirLight);
 
-// 🧱 Chão com textura repetida
-const floorTex = new THREE.TextureLoader().load('space.png');
+// Chão
+const floorTex = new THREE.TextureLoader().load('space.jpg');
 floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-floorTex.repeat.set(20, 20);
+floorTex.repeat.set(20,20);
 const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(200, 200),
-  new THREE.MeshStandardMaterial({ map: floorTex })
+  new THREE.PlaneGeometry(200,200),
+  new THREE.MeshStandardMaterial({map:floorTex})
 );
-floor.rotation.x = -Math.PI / 2;
+floor.rotation.x = -Math.PI/2;
 floor.receiveShadow = true;
 scene.add(floor);
 
-// 🎯 PointerLock + WASD
+// FPS Controls + Braços
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
 document.body.addEventListener('click', () => controls.lock());
 
-const movement = { forward: false, back: false, left: false, right: false };
-document.addEventListener('keydown', e => {
-  if (e.code === 'KeyW') movement.forward = true;
-  if (e.code === 'KeyS') movement.back = true;
-  if (e.code === 'KeyA') movement.left = true;
-  if (e.code === 'KeyD') movement.right = true;
-});
-document.addEventListener('keyup', e => {
-  if (e.code === 'KeyW') movement.forward = false;
-  if (e.code === 'KeyS') movement.back = false;
-  if (e.code === 'KeyA') movement.left = false;
-  if (e.code === 'KeyD') movement.right = false;
-});
-
-// 💪 Braços animados
+// Braços animados
 let mixer;
 new GLTFLoader().load('./ct_fps_hand_for_roblox.glb', gltf => {
   const arms = gltf.scene;
-  arms.position.set(0, -1.5, -0.5);
+  arms.position.set(0,-1.5,-0.5);
   arms.rotation.y = Math.PI;
   camera.add(arms);
   mixer = new THREE.AnimationMixer(arms);
-  if (gltf.animations.length > 0) {
-    mixer.clipAction(gltf.animations[0]).play();
-  }
+  if (gltf.animations.length > 0) mixer.clipAction(gltf.animations[0]).play();
 });
 
-// ⏱️ Loop de animação e movimentação
+// Movimentação + Gravidade
+const move = {forward:false,back:false,left:false,right:false,jump:false};
+document.addEventListener('keydown', e => {
+  if(e.code==='KeyW') move.forward=true;
+  if(e.code==='KeyS') move.back=true;
+  if(e.code==='KeyA') move.left=true;
+  if(e.code==='KeyD') move.right=true;
+  if(e.code==='Space' && canJump) { velocity.y = 5; canJump=false; }
+});
+document.addEventListener('keyup', e => {
+  if(e.code==='KeyW') move.forward=false;
+  if(e.code==='KeyS') move.back=false;
+  if(e.code==='KeyA') move.left=false;
+  if(e.code==='KeyD') move.right=false;
+});
+
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+let canJump = false;
+const ray = new THREE.Raycaster();
+ray.ray.direction.set(0,-1,0);
+ray.far = 1.6;
+
+// Loop
 const clock = new THREE.Clock();
 const speed = 5;
 
 function animate() {
   const dt = clock.getDelta();
 
-  if (mixer) mixer.update(dt);
+  // gravidade
+  velocity.y -= 9.8 * dt;
 
-  if (controls.isLocked) {
-    const dir = new THREE.Vector3();
-    if (movement.forward) dir.z -= 1;
-    if (movement.back)    dir.z += 1;
-    if (movement.left)    dir.x -= 1;
-    if (movement.right)   dir.x += 1;
-    if (dir.length()) {
-      dir.normalize().applyQuaternion(camera.quaternion);
-      controls.getObject().position.addScaledVector(dir, speed * dt);
+  // movimento horizontal
+  direction.z = (move.back?1:0) - (move.forward?1:0);
+  direction.x = (move.right?1:0) - (move.left?1:0);
+  if(direction.length()>0){
+    direction.normalize().applyQuaternion(camera.quaternion);
+    controls.getObject().position.addScaledVector(direction, speed * dt);
+  }
+
+  // colisão chão
+  ray.ray.origin.copy(controls.getObject().position);
+  const hits = ray.intersectObject(floor);
+  if(hits.length>0){
+    const dist = hits[0].distance;
+    if(dist < 1.6){
+      canJump = true;
+      velocity.y = Math.max(0, velocity.y);
+      controls.getObject().position.y = hits[0].point.y + 1.6;
     }
   }
+
+  // aplicar gravidade
+  controls.getObject().position.y += velocity.y * dt;
+
+  // animações dos braços
+  if(mixer) mixer.update(dt);
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 animate();
 
-// 🔧 Resposta a redimensionamento
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth/window.innerHeight;
+// Redimensionamento
+window.addEventListener('resize',()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
