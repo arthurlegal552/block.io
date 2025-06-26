@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<title>Parkour em Three.js</title>
+<title>Snowy Parkour Adventure</title>
 <script type="importmap">
 {
   "imports": {
@@ -11,16 +11,165 @@
   }
 }
 </script>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #1a1a2e, #16213e);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  #gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+  
+  #title {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 36px;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
+    z-index: 100;
+    pointer-events: none;
+  }
+  
+  #instructions {
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    pointer-events: none;
+  }
+  
+  #controls {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  #controls h3 {
+    margin-top: 0;
+    color: #4db8ff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 8px;
+  }
+  
+  .key {
+    display: inline-block;
+    background: rgba(50, 50, 70, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin: 5px;
+    min-width: 30px;
+    text-align: center;
+  }
+  
+  #startBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 15px 40px;
+    font-size: 20px;
+    background: linear-gradient(to bottom, #4db8ff, #1a75ff);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    cursor: pointer;
+    z-index: 200;
+    box-shadow: 0 0 20px rgba(0, 150, 255, 0.7);
+    transition: all 0.3s;
+  }
+  
+  #startBtn:hover {
+    background: linear-gradient(to bottom, #66c2ff, #3399ff);
+    box-shadow: 0 0 30px rgba(0, 200, 255, 0.9);
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  
+  #particleToggle {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  #particleToggle:hover {
+    background: rgba(30, 30, 50, 0.7);
+  }
+</style>
 </head>
-<body style="margin:0; overflow:hidden;">
+<body>
+<div id="gameContainer">
+  <div id="title">❄️ Snowy Parkour Adventure ❄️</div>
+  
+  <div id="controls">
+    <h3>Controls</h3>
+    <div><span class="key">W</span> Move Forward</div>
+    <div><span class="key">A</span> Move Left</div>
+    <div><span class="key">S</span> Move Backward</div>
+    <div><span class="key">D</span> Move Right</div>
+    <div><span class="key">Space</span> Jump</div>
+    <div><span class="key">Mouse</span> Look Around</div>
+  </div>
+  
+  <div id="particleToggle">❄ Toggle Snow Particles</div>
+  
+  <div id="instructions">
+    Click the start button to begin. Navigate through the snowy parkour course!
+  </div>
+  
+  <button id="startBtn">Start Game</button>
+</div>
+
 <script type="module">
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
+// Game state
+let gameStarted = false;
+let particlesEnabled = true;
+
+// UI Elements
+const startBtn = document.getElementById('startBtn');
+const particleToggle = document.getElementById('particleToggle');
+const instructions = document.getElementById('instructions');
+
 // ——————————————————————
-// 1️⃣ Cena, Câmera e Renderer
+// 1️⃣ Scene Setup
 // ——————————————————————
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1a1a2e);
+scene.fog = new THREE.Fog(0x16213e, 10, 150);
+
 const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000 );
 camera.position.set(0, 1.6, 0);
 
@@ -31,51 +180,213 @@ renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // ——————————————————————
-// 2️⃣ Iluminação
+// 2️⃣ Lighting
 // ——————————————————————
-scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-dirLight.position.set(5,10,7);
-dirLight.castShadow = true;
-scene.add(dirLight);
+scene.add(new THREE.AmbientLight(0x404040, 1.5)); // Reduced ambient light for night scene
+
+// Moonlight
+const moonLight = new THREE.DirectionalLight(0x9db4ff, 0.8);
+moonLight.position.set(-10, 20, 10);
+moonLight.castShadow = true;
+moonLight.shadow.mapSize.width = 1024;
+moonLight.shadow.mapSize.height = 1024;
+scene.add(moonLight);
+
+// Fill light
+const fillLight = new THREE.DirectionalLight(0x4d79ff, 0.3);
+fillLight.position.set(10, 10, -10);
+scene.add(fillLight);
+
+// Ground lights
+const groundLight1 = new THREE.PointLight(0x4db8ff, 1, 30);
+groundLight1.position.set(15, 2, -20);
+scene.add(groundLight1);
+
+const groundLight2 = new THREE.PointLight(0xff4da6, 1, 30);
+groundLight2.position.set(-15, 2, -30);
+scene.add(groundLight2);
 
 // ——————————————————————
-// 3️⃣ Chão
+// 3️⃣ Snowy Ground
 // ——————————————————————
 const floorGeo = new THREE.PlaneGeometry(200, 200);
-const floorMat = new THREE.MeshStandardMaterial({ color: 0x777777 });
+const floorMat = new THREE.MeshStandardMaterial({ 
+  color: 0x3a506b,
+  roughness: 0.9,
+  metalness: 0.1
+});
 const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
+// Snow cover
+const snowGeo = new THREE.PlaneGeometry(200, 200);
+const snowMat = new THREE.MeshStandardMaterial({ 
+  color: 0xe0f7fa,
+  roughness: 0.8,
+  metalness: 0.05,
+  transparent: true,
+  opacity: 0.7
+});
+const snow = new THREE.Mesh(snowGeo, snowMat);
+snow.rotation.x = -Math.PI / 2;
+snow.position.y = 0.01;
+snow.receiveShadow = true;
+scene.add(snow);
+
 // ——————————————————————
-// 4️⃣ Blocos de Parkour
+// 4️⃣ Parkour Blocks with Snowy Tops
 // ——————————————————————
 function createBlock(x, y, z, w, h, d, color) {
   const geo = new THREE.BoxGeometry(w, h, d);
-  const mat = new THREE.MeshStandardMaterial({ color });
+  const mat = new THREE.MeshStandardMaterial({ 
+    color,
+    roughness: 0.7,
+    metalness: 0.2
+  });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(x, y, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   scene.add(mesh);
+  
+  // Add snow on top
+  const snowTopGeo = new THREE.BoxGeometry(w - 0.2, 0.1, d - 0.2);
+  const snowTopMat = new THREE.MeshStandardMaterial({ 
+    color: 0xffffff,
+    roughness: 0.9,
+    metalness: 0.05
+  });
+  const snowTop = new THREE.Mesh(snowTopGeo, snowTopMat);
+  snowTop.position.set(x, y + h/2 + 0.05, z);
+  snowTop.receiveShadow = true;
+  scene.add(snowTop);
+  
   return mesh;
 }
 
-// Exemplo de plataformas
-createBlock(0, 1, -5, 3, 0.5, 3, 0x00ff00);
-createBlock(5, 1.5, -10, 3, 0.5, 3, 0x0000ff);
-createBlock(-5, 2, -15, 3, 0.5, 3, 0xff0000);
-createBlock(0, 3, -20, 3, 0.5, 3, 0xffff00);
+// Create parkour course with snow
+createBlock(0, 1, -5, 3, 0.5, 3, 0x2ecc71);
+createBlock(5, 1.5, -10, 3, 0.5, 3, 0x3498db);
+createBlock(-5, 2, -15, 3, 0.5, 3, 0xe74c3c);
+createBlock(0, 3, -20, 3, 0.5, 3, 0xf1c40f);
+createBlock(8, 4, -25, 2, 0.5, 4, 0x9b59b6);
+createBlock(-8, 5, -30, 4, 0.5, 2, 0x1abc9c);
+createBlock(0, 6, -40, 3, 0.5, 10, 0xe67e22);
+
+// Starting platform
+createBlock(0, 0.5, 0, 5, 0.5, 5, 0x34495e);
+
+// Obstacles
+createBlock(3, 1, -15, 1, 2, 1, 0x95a5a6);
+createBlock(-3, 1, -25, 1, 3, 1, 0x95a5a6);
+createBlock(0, 1, -35, 1, 4, 1, 0x95a5a6);
+
+// Decorative trees
+function createTree(x, z) {
+  // Trunk
+  const trunkGeo = new THREE.CylinderGeometry(0.3, 0.3, 3, 8);
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
+  const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+  trunk.position.set(x, 1.5, z);
+  trunk.castShadow = true;
+  trunk.receiveShadow = true;
+  scene.add(trunk);
+  
+  // Leaves
+  const leavesGeo = new THREE.ConeGeometry(2, 4, 8);
+  const leavesMat = new THREE.MeshStandardMaterial({ 
+    color: 0x27ae60,
+    roughness: 0.9
+  });
+  const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+  leaves.position.set(x, 4, z);
+  leaves.castShadow = true;
+  leaves.receiveShadow = true;
+  scene.add(leaves);
+  
+  // Snow on leaves
+  const snowGeo = new THREE.SphereGeometry(1.5, 8, 8);
+  const snowMat = new THREE.MeshStandardMaterial({ 
+    color: 0xffffff,
+    roughness: 0.9
+  });
+  const snowCap = new THREE.Mesh(snowGeo, snowMat);
+  snowCap.position.set(x, 5.5, z);
+  snowCap.castShadow = true;
+  scene.add(snowCap);
+}
+
+// Add trees around the map
+createTree(15, -10);
+createTree(-15, -15);
+createTree(10, -30);
+createTree(-10, -25);
+createTree(18, -40);
+createTree(-18, -35);
 
 // ——————————————————————
-// 5️⃣ Controles e Variáveis de Movimento
+// 5️⃣ Snow Particle System
+// ——————————————————————
+let particleSystem;
+let particleGeometry;
+let particleMaterial;
+const particleCount = 2000;
+
+function createSnowParticles() {
+  particleGeometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  
+  for (let i = 0; i < particleCount * 3; i += 3) {
+    positions[i] = (Math.random() - 0.5) * 200; // x
+    positions[i + 1] = Math.random() * 100;     // y
+    positions[i + 2] = (Math.random() - 0.5) * 200; // z
+  }
+  
+  particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  
+  particleMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.2,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+  });
+  
+  particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+  scene.add(particleSystem);
+}
+
+function updateSnowParticles(dt) {
+  if (!particlesEnabled || !particleSystem) return;
+  
+  const positions = particleGeometry.attributes.position.array;
+  
+  for (let i = 0; i < particleCount * 3; i += 3) {
+    // Move particles down (snow fall)
+    positions[i + 1] -= 3 * dt;
+    
+    // Add slight horizontal movement for wind effect
+    positions[i] += (Math.random() - 0.5) * 0.5;
+    positions[i + 2] += (Math.random() - 0.5) * 0.5;
+    
+    // Reset particles that have fallen below ground
+    if (positions[i + 1] < 0) {
+      positions[i + 1] = Math.random() * 50 + 50;
+      positions[i] = (Math.random() - 0.5) * 200;
+      positions[i + 2] = (Math.random() - 0.5) * 200;
+    }
+  }
+  
+  particleGeometry.attributes.position.needsUpdate = true;
+}
+
+// ——————————————————————
+// 6️⃣ Player Controls
 // ——————————————————————
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
-
-document.addEventListener('click', () => controls.lock());
 
 const move = { forward: false, back: false, left: false, right: false };
 const velocity = new THREE.Vector3();
@@ -86,7 +397,7 @@ raycaster.ray.direction.set(0, -1, 0);
 raycaster.far = 1.6;
 
 const clock = new THREE.Clock();
-const speed = 5;
+const speed = 3; // Reduced speed for more controlled movement
 
 function getMoveDirection() {
   const dir = new THREE.Vector3();
@@ -104,17 +415,20 @@ function getMoveDirection() {
   return dir;
 }
 
-// Teclado
+// Keyboard controls
 document.addEventListener('keydown', e => {
+  if (!gameStarted) return;
+  
   if (e.code === 'KeyW') move.forward = true;
   if (e.code === 'KeyS') move.back = true;
   if (e.code === 'KeyA') move.left = true;
   if (e.code === 'KeyD') move.right = true;
   if (e.code === 'Space' && canJump) {
-    velocity.y = 5;
+    velocity.y = 4; // Reduced jump height
     canJump = false;
   }
 });
+
 document.addEventListener('keyup', e => {
   if (e.code === 'KeyW') move.forward = false;
   if (e.code === 'KeyS') move.back = false;
@@ -123,46 +437,74 @@ document.addEventListener('keyup', e => {
 });
 
 // ——————————————————————
-// 6️⃣ Loop de Animação e Gravidade
+// 7️⃣ Game Initialization
+// ——————————————————————
+startBtn.addEventListener('click', () => {
+  gameStarted = true;
+  startBtn.style.display = 'none';
+  instructions.innerHTML = 'Click to lock controls. Use WASD to move, SPACE to jump!';
+  controls.lock();
+});
+
+particleToggle.addEventListener('click', () => {
+  particlesEnabled = !particlesEnabled;
+  particleToggle.textContent = particlesEnabled ? '❄ Disable Snow Particles' : '❄ Enable Snow Particles';
+});
+
+// ——————————————————————
+// 8️⃣ Animation Loop
 // ——————————————————————
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
+  
+  if (gameStarted) {
+    // Apply gravity
+    velocity.y -= 9.8 * dt;
 
-  velocity.y -= 9.8 * dt;
+    // Apply damping for smoother movement
+    velocity.x *= Math.exp(-10 * dt);
+    velocity.z *= Math.exp(-10 * dt);
 
-  velocity.x *= Math.exp(-10 * dt);
-  velocity.z *= Math.exp(-10 * dt);
+    // Get movement direction
+    const dir = getMoveDirection();
+    
+    // Apply movement with reduced speed
+    velocity.x += dir.x * speed * dt;
+    velocity.z += dir.z * speed * dt;
 
-  const dir = getMoveDirection();
-  velocity.x += dir.x * speed * dt;
-  velocity.z += dir.z * speed * dt;
+    const pos = controls.getObject().position;
 
-  const pos = controls.getObject().position;
+    pos.x += velocity.x;
+    pos.z += velocity.z;
 
-  pos.x += velocity.x;
-  pos.z += velocity.z;
-
-  // Verifica colisão com chão e plataformas
-  raycaster.ray.origin.copy(pos);
-  const hits = raycaster.intersectObjects(scene.children, true);
-  if (hits.length > 0) {
-    const dist = hits[0].distance;
-    if (dist < 1.6) {
-      velocity.y = Math.max(0, velocity.y);
-      canJump = true;
-      pos.y = hits[0].point.y + 1.6;
+    // Ground and platform collision
+    raycaster.ray.origin.copy(pos);
+    const hits = raycaster.intersectObjects(scene.children, true);
+    if (hits.length > 0) {
+      const dist = hits[0].distance;
+      if (dist < 1.6) {
+        velocity.y = Math.max(0, velocity.y);
+        canJump = true;
+        pos.y = hits[0].point.y + 1.6;
+      }
     }
-  }
 
-  pos.y += velocity.y * dt;
+    pos.y += velocity.y * dt;
+    
+    // Update snow particles
+    updateSnowParticles(dt);
+  }
 
   renderer.render(scene, camera);
 }
+
+// Initialize snow particles
+createSnowParticles();
 animate();
 
 // ——————————————————————
-// 7️⃣ Redimensionamento
+// 9️⃣ Window Resizing
 // ——————————————————————
 window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
