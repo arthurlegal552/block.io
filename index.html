@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <title>FPS com Braços Ajustados</title>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
-    }
+<meta charset="UTF-8">
+<title>Parkour em Three.js</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.150.1/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.150.1/examples/jsm/"
   }
-  </script>
+}
+</script>
 </head>
 <body style="margin:0; overflow:hidden;">
 <script type="module">
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // ——————————————————————
-// 1. Cena, Câmera e Renderer
+// 1️⃣ Cena, Câmera e Renderer
 // ——————————————————————
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000 );
 camera.position.set(0, 1.6, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // ——————————————————————
-// 2. Iluminação
+// 2️⃣ Iluminação
 // ——————————————————————
 scene.add(new THREE.AmbientLight(0xffffff, 1.2));
 const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -41,65 +40,76 @@ dirLight.castShadow = true;
 scene.add(dirLight);
 
 // ——————————————————————
-// 3. Chão com Textura
+// 3️⃣ Chão
 // ——————————————————————
-const floorTexture = new THREE.TextureLoader().load('./space.png');
-floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-floorTexture.repeat.set(20,20);
-
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(200,200),
-  new THREE.MeshStandardMaterial({ map: floorTexture })
-);
-floor.rotation.x = -Math.PI/2;
+const floorGeo = new THREE.PlaneGeometry(200, 200);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x777777 });
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
 // ——————————————————————
-// 4. Controles FPS
+// 4️⃣ Blocos de Parkour
+// ——————————————————————
+function createBlock(x, y, z, w, h, d, color) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mat = new THREE.MeshStandardMaterial({ color });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+  return mesh;
+}
+
+// Exemplo de plataformas
+createBlock(0, 1, -5, 3, 0.5, 3, 0x00ff00);
+createBlock(5, 1.5, -10, 3, 0.5, 3, 0x0000ff);
+createBlock(-5, 2, -15, 3, 0.5, 3, 0xff0000);
+createBlock(0, 3, -20, 3, 0.5, 3, 0xffff00);
+
+// ——————————————————————
+// 5️⃣ Controles e Variáveis de Movimento
 // ——————————————————————
 const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
-document.body.addEventListener('click', () => controls.lock());
 
-const move = { forward:false, back:false, left:false, right:false };
+document.addEventListener('click', () => controls.lock());
+
+const move = { forward: false, back: false, left: false, right: false };
 const velocity = new THREE.Vector3();
 let canJump = false;
 
-// Configura o raycaster para colisão com chão
 const raycaster = new THREE.Raycaster();
 raycaster.ray.direction.set(0, -1, 0);
 raycaster.far = 1.6;
 
-// ——————————————————————
-// 5. Carrega e Ajusta as Mãos
-// ——————————————————————
-new GLTFLoader().load(
-  './fps_arms.glb',
-  (gltf) => {
-    const arms = gltf.scene;
-    // ① Reduz tamanho
-    arms.scale.set(0.5, 0.5, 0.5);
-    // ② Posiciona à frente e um pouco abaixo
-    arms.position.set(0, -1.2, -0.8);
-    // ③ Gira para ficar olhando pra frente
-    arms.rotation.y = Math.PI;
-    // ④ Anexa à câmera
-    camera.add(arms);
-    console.log('Braços carregados e ajustados!');
-  },
-  undefined,
-  (err) => console.error('Erro ao carregar arms.glb:', err)
-);
+const clock = new THREE.Clock();
+const speed = 5;
 
-// ——————————————————————
-// 6. Teclado
-// ——————————————————————
+function getMoveDirection() {
+  const dir = new THREE.Vector3();
+  const forward = new THREE.Vector3();
+  const right = new THREE.Vector3();
+  controls.getObject().getWorldDirection(forward);
+  forward.y = 0; forward.normalize();
+  right.crossVectors(forward, new THREE.Vector3(0,1,0)).normalize();
+
+  if (move.forward) dir.add(forward);
+  if (move.back) dir.sub(forward);
+  if (move.left) dir.sub(right);
+  if (move.right) dir.add(right);
+  if (dir.length() > 0) dir.normalize();
+  return dir;
+}
+
+// Teclado
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyW') move.forward = true;
-  if (e.code === 'KeyS') move.back    = true;
-  if (e.code === 'KeyA') move.left    = true;
-  if (e.code === 'KeyD') move.right   = true;
+  if (e.code === 'KeyS') move.back = true;
+  if (e.code === 'KeyA') move.left = true;
+  if (e.code === 'KeyD') move.right = true;
   if (e.code === 'Space' && canJump) {
     velocity.y = 5;
     canJump = false;
@@ -107,52 +117,35 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => {
   if (e.code === 'KeyW') move.forward = false;
-  if (e.code === 'KeyS') move.back    = false;
-  if (e.code === 'KeyA') move.left    = false;
-  if (e.code === 'KeyD') move.right   = false;
+  if (e.code === 'KeyS') move.back = false;
+  if (e.code === 'KeyA') move.left = false;
+  if (e.code === 'KeyD') move.right = false;
 });
 
 // ——————————————————————
-// 7. Loop de Animação e Física
+// 6️⃣ Loop de Animação e Gravidade
 // ——————————————————————
-const clock = new THREE.Clock();
-const speed = 5;
-
 function animate() {
   requestAnimationFrame(animate);
   const dt = clock.getDelta();
 
-  // Gravidade
   velocity.y -= 9.8 * dt;
 
-  // Atrito horizontal
   velocity.x *= Math.exp(-10 * dt);
   velocity.z *= Math.exp(-10 * dt);
 
-  // Direção de movimento no plano XZ
-  const dir = new THREE.Vector3();
-  const forward = new THREE.Vector3();
-  controls.getObject().getWorldDirection(forward);
-  forward.y = 0; forward.normalize();
-  const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0,1,0)).normalize();
+  const dir = getMoveDirection();
+  velocity.x += dir.x * speed * dt;
+  velocity.z += dir.z * speed * dt;
 
-  if (move.forward) dir.add(forward);
-  if (move.back)    dir.sub(forward);
-  if (move.left)    dir.sub(right);
-  if (move.right)   dir.add(right);
-  if (dir.length()) dir.normalize().multiplyScalar(speed * dt);
-
-  velocity.x += dir.x;
-  velocity.z += dir.z;
-
-  // Aplica movimento
   const pos = controls.getObject().position;
+
   pos.x += velocity.x;
   pos.z += velocity.z;
 
-  // Colisão com chão
+  // Verifica colisão com chão e plataformas
   raycaster.ray.origin.copy(pos);
-  const hits = raycaster.intersectObject(floor);
+  const hits = raycaster.intersectObjects(scene.children, true);
   if (hits.length > 0) {
     const dist = hits[0].distance;
     if (dist < 1.6) {
@@ -162,7 +155,6 @@ function animate() {
     }
   }
 
-  // Atualiza Y
   pos.y += velocity.y * dt;
 
   renderer.render(scene, camera);
@@ -170,10 +162,10 @@ function animate() {
 animate();
 
 // ——————————————————————
-// 8. Redimensionamento da Janela
+// 7️⃣ Redimensionamento
 // ——————————————————————
 window.addEventListener('resize', () => {
-  camera.aspect = innerWidth/innerHeight;
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
