@@ -37,7 +37,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 10, 30, 0.85);
+            background: rgba(10, 10, 15, 0.95);
             z-index: 100;
             display: flex;
             flex-direction: column;
@@ -50,16 +50,14 @@
         #title-screen h1 {
             font-size: 4rem;
             margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(100, 200, 255, 0.8);
-            background: linear-gradient(45deg, #4fc3f7, #e1f5fe);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            color: #ffffff;
             animation: glow 3s infinite alternate;
         }
         
         @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(100, 200, 255, 0.8); }
-            100% { text-shadow: 0 0 30px rgba(100, 200, 255, 1), 0 0 50px rgba(100, 200, 255, 0.8); }
+            0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+            100% { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6); }
         }
         
         #title-screen p {
@@ -67,32 +65,36 @@
             max-width: 600px;
             margin-bottom: 30px;
             line-height: 1.6;
+            color: #e0e0e0;
         }
         
         #start-btn {
             padding: 15px 50px;
             font-size: 1.4rem;
-            background: linear-gradient(45deg, #0288d1, #4fc3f7);
-            border: none;
+            background: linear-gradient(to right, #222, #444);
+            border: 2px solid #ddd;
             border-radius: 50px;
             color: white;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 0 20px rgba(0, 150, 255, 0.7);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
             margin-top: 20px;
             animation: pulse 2s infinite;
+            letter-spacing: 1px;
+            font-weight: bold;
         }
         
         @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 150, 255, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 30px rgba(0, 200, 255, 0.9); }
-            100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 150, 255, 0.7); }
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 255, 255, 0.4); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
         }
         
         #start-btn:hover {
             animation: none;
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(0, 200, 255, 0.9);
+            background: linear-gradient(to right, #333, #555);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
         }
         
         #ui-overlay {
@@ -108,18 +110,22 @@
         }
         
         #controls-panel {
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            border: 1px solid rgba(200, 200, 200, 0.3);
             backdrop-filter: blur(5px);
             max-width: 300px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
         
         #controls-panel h3 {
-            color: #4fc3f7;
+            color: #ffffff;
             margin-bottom: 15px;
             font-size: 1.4rem;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid #777;
+            padding-bottom: 5px;
         }
         
         .key-row {
@@ -131,8 +137,8 @@
         .key {
             width: 50px;
             height: 50px;
-            background: rgba(30, 70, 120, 0.8);
-            border: 2px solid rgba(100, 180, 255, 0.5);
+            background: rgba(60, 60, 70, 0.9);
+            border: 2px solid rgba(220, 220, 220, 0.5);
             border-radius: 8px;
             display: flex;
             justify-content: center;
@@ -140,33 +146,40 @@
             margin-right: 15px;
             font-weight: bold;
             font-size: 1.2rem;
+            color: #fff;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
         }
         
         .key-label {
             font-size: 1.1rem;
+            color: #e0e0e0;
         }
         
         #speed-indicator {
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             border-radius: 15px;
             padding: 20px;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            border: 1px solid rgba(200, 200, 200, 0.3);
             backdrop-filter: blur(5px);
             height: fit-content;
             text-align: center;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
         
         #speed-indicator h3 {
-            color: #4fc3f7;
+            color: #ffffff;
             margin-bottom: 10px;
             font-size: 1.4rem;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid #777;
+            padding-bottom: 5px;
         }
         
         #speed-value {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #4fc3f7;
-            text-shadow: 0 0 10px rgba(79, 195, 247, 0.7);
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         
         #instructions {
@@ -176,10 +189,12 @@
             width: 100%;
             text-align: center;
             font-size: 1.2rem;
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             padding: 15px;
-            border-top: 1px solid rgba(100, 180, 255, 0.3);
+            border-top: 1px solid rgba(200, 200, 200, 0.3);
             backdrop-filter: blur(5px);
+            color: #e0e0e0;
+            box-shadow: 0 -5px 10px rgba(0, 0, 0, 0.2);
         }
         
         canvas {
@@ -190,38 +205,42 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             color: white;
             padding: 12px 20px;
             border-radius: 10px;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            border: 1px solid rgba(200, 200, 200, 0.3);
             cursor: pointer;
             z-index: 50;
             backdrop-filter: blur(5px);
             transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
         #particle-toggle:hover {
-            background: rgba(30, 70, 120, 0.8);
+            background: rgba(40, 40, 50, 0.9);
         }
         
         #sound-toggle {
             position: absolute;
             top: 70px;
             right: 20px;
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             color: white;
             padding: 12px 20px;
             border-radius: 10px;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            border: 1px solid rgba(200, 200, 200, 0.3);
             cursor: pointer;
             z-index: 50;
             backdrop-filter: blur(5px);
             transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
         #sound-toggle:hover {
-            background: rgba(30, 70, 120, 0.8);
+            background: rgba(40, 40, 50, 0.9);
         }
         
         .snowflake {
@@ -237,12 +256,14 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(20, 20, 25, 0.85);
             padding: 10px 15px;
             border-radius: 10px;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            border: 1px solid rgba(200, 200, 200, 0.3);
             z-index: 50;
             backdrop-filter: blur(5px);
+            color: #e0e0e0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
         }
         
         #volume-slider {
@@ -251,23 +272,122 @@
             cursor: pointer;
         }
         
-        .sound-icon {
-            margin-right: 8px;
+        #stamina-container {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            width: 200px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 50;
+            overflow: hidden;
+            display: none;
+        }
+        
+        #stamina-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ffffff, #bbbbbb);
+            transition: width 0.2s;
+        }
+        
+        .sprint-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(100,200,255,0.2) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.3s;
+        }
+        
+        /* Exhaustion effect styles */
+        #exhaustion-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 25;
+            transition: opacity 0.5s;
+        }
+        
+        #heartbeat-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 26;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .heartbeat-line {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.5) 0%, transparent 70%);
+            border-radius: 50%;
+            position: absolute;
+            transform: scale(0);
+        }
+        
+        .heartbeat-text {
+            color: rgba(255, 50, 50, 0.8);
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            animation: textPulse 2s infinite;
+        }
+        
+        @keyframes textPulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        
+        #stamina-warning {
+            position: absolute;
+            top: 150px;
+            right: 20px;
+            background: rgba(200, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 50;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
         }
     </style>
 </head>
 <body>
     <div id="game-container">
         <div id="title-screen">
-            <h1>❄️ Snowy Parkour Adventure ❄️</h1>
-            <p>Navigate through a winter wonderland with slow, precise movements. Jump between snow-covered platforms and enjoy the peaceful snowfall.</p>
-            <p>Movement speed has been reduced by 60% for a more relaxed experience.</p>
-            <button id="start-btn">Start Journey</button>
+            <h1>❄️ SNOWY PARKOUR ❄️</h1>
+            <p>Navigate through a winter wonderland with enhanced movement. Press SHIFT to sprint through the snow!</p>
+            <p>Stamina system added - when exhausted, you'll need to recover before sprinting again.</p>
+            <button id="start-btn">START JOURNEY</button>
         </div>
         
         <div id="ui-overlay">
             <div id="controls-panel">
-                <h3>Controls</h3>
+                <h3>CONTROLS</h3>
                 <div class="key-row">
                     <div class="key">W</div>
                     <div class="key-label">Move Forward</div>
@@ -289,27 +409,41 @@
                     <div class="key-label">Jump</div>
                 </div>
                 <div class="key-row">
-                    <div class="key">MOUSE</div>
-                    <div class="key-label">Look Around</div>
+                    <div class="key">SHIFT</div>
+                    <div class="key-label">Sprint</div>
                 </div>
             </div>
             
             <div id="speed-indicator">
-                <h3>Movement Speed</h3>
-                <div id="speed-value">40%</div>
+                <h3>MOVEMENT SPEED</h3>
+                <div id="speed-value">100%</div>
             </div>
         </div>
         
-        <div id="particle-toggle">❄ Toggle Snow</div>
-        <div id="sound-toggle">🔊 Toggle Sound</div>
+        <div id="particle-toggle">❄ TOGGLE SNOW</div>
+        <div id="sound-toggle">🔊 TOGGLE SOUND</div>
+        <div id="stamina-container">
+            <div id="stamina-bar"></div>
+        </div>
+        <div id="stamina-warning">STAMINA DEPLETED! RECOVERING...</div>
         
         <div id="volume-control">
-            <div>Volume: <span id="volume-value">70%</span></div>
+            <div>VOLUME: <span id="volume-value">70%</span></div>
             <input type="range" id="volume-slider" min="0" max="100" value="70">
         </div>
         
         <div id="instructions">
-            Use WASD to move, SPACE to jump. Navigate through the snowy platforms!
+            USE WASD TO MOVE, SPACE TO JUMP, AND SHIFT TO SPRINT!
+        </div>
+        
+        <div class="sprint-effect" id="sprint-effect"></div>
+        
+        <!-- Exhaustion effects -->
+        <div id="exhaustion-overlay"></div>
+        <div id="heartbeat-effect">
+            <div class="heartbeat-text">EXHAUSTED!</div>
+            <div class="heartbeat-line" id="heartbeat-line-1"></div>
+            <div class="heartbeat-line" id="heartbeat-line-2"></div>
         </div>
     </div>
 
@@ -319,6 +453,12 @@
         let particlesEnabled = true;
         let soundEnabled = true;
         let snowflakes = [];
+        let collidableObjects = [];
+        let stamina = 100;
+        let isSprinting = false;
+        let sprintCooldown = false;
+        let exhausted = false;
+        let lastBreathTime = 0;
         
         // UI Elements
         const titleScreen = document.getElementById('title-screen');
@@ -329,6 +469,12 @@
         const speedValue = document.getElementById('speed-value');
         const volumeSlider = document.getElementById('volume-slider');
         const volumeValue = document.getElementById('volume-value');
+        const staminaContainer = document.getElementById('stamina-container');
+        const staminaBar = document.getElementById('stamina-bar');
+        const sprintEffect = document.getElementById('sprint-effect');
+        const exhaustionOverlay = document.getElementById('exhaustion-overlay');
+        const heartbeatEffect = document.getElementById('heartbeat-effect');
+        const staminaWarning = document.getElementById('stamina-warning');
         
         // Sound elements
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -362,47 +508,39 @@
             source.start(0);
         }
         
-        // Load all sounds
-        Promise.all([
-            loadSound('https://github.com/arthurlegal552/uncanny-zazu/raw/main/sounds/hotel.mp3', 'ambient'),
-            loadSound('https://github.com/arthurlegal552/block.io/raw/main/footsteps.mp3', 'footstep'),
-            loadSound('https://github.com/arthurlegal552/block.io/raw/main/roblox-classic-jump.mp3', 'jump'),
-            loadSound('https://assets.mixkit.co/sfx/preview/mixkit-ice-crack-1717.mp3', 'land'),
-            loadSound('https://assets.mixkit.co/sfx/preview/mixkit-wind-whistling-1249.mp3', 'wind'),
-            loadSound('https://assets.mixkit.co/sfx/preview/mixkit-falling-on-snow-387.mp3', 'snowfall')
-        ]).then(() => {
-            console.log("All sounds loaded");
-            // Play ambient sound on loop
-            if (soundEnabled) {
-                playAmbient();
-            }
-        }).catch(error => {
-            console.error("Error loading sounds:", error);
-        });
-        
-        // Play ambient sound on loop
-        function playAmbient() {
-            if (!soundEnabled) return;
-            
-            const source = audioContext.createBufferSource();
-            source.buffer = sounds['ambient'];
-            source.loop = true;
-            
-            const ambientGain = audioContext.createGain();
-            ambientGain.gain.value = 0.3 * (gainNode.gain.value);
-            
-            source.connect(ambientGain);
-            ambientGain.connect(audioContext.destination);
-            
-            source.start(0);
-        }
-        
         // Set volume
         volumeSlider.addEventListener('input', () => {
             const volume = volumeSlider.value / 100;
             gainNode.gain.value = volume;
             volumeValue.textContent = volumeSlider.value + '%';
         });
+        
+        // Load all sounds
+        function loadGameSounds() {
+            const soundUrls = {
+                ambient: 'https://github.com/arthurlegal552/uncanny-zazu/raw/main/sounds/hotel.mp3',
+                footstep: 'https://github.com/arthurlegal552/block.io/raw/main/footsteps.mp3',
+                jump: 'https://assets.mixkit.co/sfx/preview/mixkit-jump-landing-2061.mp3',
+                land: 'https://assets.mixkit.co/sfx/preview/mixkit-ice-crack-1717.mp3',
+                wind: 'https://assets.mixkit.co/sfx/preview/mixkit-wind-whistling-1249.mp3',
+                sprint: 'https://assets.mixkit.co/sfx/preview/mixkit-whoosh-1121.mp3',
+                breath: 'https://assets.mixkit.co/sfx/preview/mixkit-heavy-breathing-1170.mp3',
+                heartbeat: 'https://assets.mixkit.co/sfx/preview/mixkit-single-heartbeat-766.mp3'
+            };
+            
+            const loadPromises = Object.entries(soundUrls).map(([name, url]) => 
+                loadSound(url, name).catch(e => console.error(`Error loading ${name} sound:`, e))
+            );
+            
+            Promise.all(loadPromises).then(() => {
+                console.log("All sounds loaded");
+                // Play ambient sound on title screen
+                playSound('ambient', 0.3);
+            });
+        }
+        
+        // Start loading sounds
+        loadGameSounds();
         
         // ——————————————————————
         // 1️⃣ Scene Setup
@@ -461,6 +599,7 @@
         floor.rotation.x = -Math.PI / 2;
         floor.receiveShadow = true;
         scene.add(floor);
+        collidableObjects.push(floor);
         
         // Snow cover
         const snowGeo = new THREE.PlaneGeometry(200, 200);
@@ -481,6 +620,7 @@
         // 4️⃣ Parkour Blocks with Snow
         // ——————————————————————
         function createBlock(x, y, z, w, h, d, color) {
+            // Main block
             const geo = new THREE.BoxGeometry(w, h, d);
             const mat = new THREE.MeshStandardMaterial({ 
                 color,
@@ -492,6 +632,19 @@
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             scene.add(mesh);
+            
+            // Add collider for the main block
+            const blockCollider = new THREE.Mesh(
+                new THREE.BoxGeometry(w, h, d),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0xff0000,
+                    wireframe: true,
+                    visible: false
+                })
+            );
+            blockCollider.position.set(x, y, z);
+            scene.add(blockCollider);
+            collidableObjects.push(blockCollider);
             
             // Add snow on top
             const snowTopGeo = new THREE.BoxGeometry(w - 0.2, 0.1, d - 0.2);
@@ -505,7 +658,20 @@
             snowTop.receiveShadow = true;
             scene.add(snowTop);
             
-            return mesh;
+            // Add collider for snow top
+            const snowCollider = new THREE.Mesh(
+                new THREE.BoxGeometry(w - 0.2, 0.1, d - 0.2),
+                new THREE.MeshBasicMaterial({ 
+                    color: 0x00ff00,
+                    wireframe: true,
+                    visible: false
+                })
+            );
+            snowCollider.position.set(x, y + h/2 + 0.05, z);
+            scene.add(snowCollider);
+            collidableObjects.push(snowCollider);
+            
+            return { mesh, snowTop };
         }
         
         // Create parkour course
@@ -518,57 +684,12 @@
         createBlock(0, 6, -45, 3, 0.5, 10, 0xe67e22);
         
         // Starting platform
-        const startPlatform = createBlock(0, 0.5, 0, 6, 0.5, 6, 0x34495e);
+        createBlock(0, 0.5, 0, 6, 0.5, 6, 0x34495e);
         
         // Obstacles
         createBlock(4, 1, -15, 1, 2, 1, 0x95a5a6);
         createBlock(-4, 1, -25, 1, 3, 1, 0x95a5a6);
         createBlock(0, 1, -35, 1, 4, 1, 0x95a5a6);
-        
-        // Decorative trees
-        function createTree(x, z) {
-            // Trunk
-            const trunkGeo = new THREE.CylinderGeometry(0.3, 0.3, 3, 8);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.set(x, 1.5, z);
-            trunk.castShadow = true;
-            trunk.receiveShadow = true;
-            scene.add(trunk);
-            
-            // Leaves
-            const leavesGeo = new THREE.ConeGeometry(2, 4, 8);
-            const leavesMat = new THREE.MeshStandardMaterial({ 
-                color: 0x27ae60,
-                roughness: 0.9
-            });
-            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-            leaves.position.set(x, 4, z);
-            leaves.castShadow = true;
-            leaves.receiveShadow = true;
-            scene.add(leaves);
-            
-            // Snow on leaves
-            const snowGeo = new THREE.SphereGeometry(1.5, 8, 8);
-            const snowMat = new THREE.MeshStandardMaterial({ 
-                color: 0xffffff,
-                roughness: 0.9
-            });
-            const snowCap = new THREE.Mesh(snowGeo, snowMat);
-            snowCap.position.set(x, 5.5, z);
-            snowCap.castShadow = true;
-            scene.add(snowCap);
-        }
-        
-        // Add trees
-        createTree(16, -10);
-        createTree(-16, -15);
-        createTree(12, -30);
-        createTree(-12, -25);
-        createTree(20, -40);
-        createTree(-20, -35);
-        createTree(15, -50);
-        createTree(-15, -45);
         
         // ——————————————————————
         // 5️⃣ Snow Particle System
@@ -627,7 +748,7 @@
         }
         
         // ——————————————————————
-        // 6️⃣ Player Controls (SLOW MOVEMENT)
+        // 6️⃣ Player Controls with Sprint Functionality
         // ——————————————————————
         const controls = new THREE.PointerLockControls(camera, renderer.domElement);
         scene.add(controls.getObject());
@@ -636,18 +757,21 @@
         const velocity = new THREE.Vector3();
         let canJump = false;
         let lastFootstep = 0;
-        let footstepCounter = 0;
-        
-        const raycaster = new THREE.Raycaster();
-        raycaster.ray.direction.set(0, -1, 0);
-        raycaster.far = 1.6;
         
         const clock = new THREE.Clock();
         
-        // Reduced movement parameters
-        const baseSpeed = 1.5; // 60% reduction from original
+        // Movement parameters - increased speed
+        const baseSpeed = 3.5; // Increased base speed
+        const sprintSpeed = 7.0; // Sprint speed
         let currentSpeed = baseSpeed;
-        const jumpForce = 3.5; // Reduced jump height
+        const jumpForce = 5.0; // Increased jump height
+        
+        // Player collision box
+        const playerCollider = {
+            radius: 0.4,
+            height: 1.8,
+            position: new THREE.Vector3()
+        };
         
         function getMoveDirection() {
             const dir = new THREE.Vector3();
@@ -665,6 +789,57 @@
             return dir;
         }
         
+        // IMPROVED COLLISION DETECTION SYSTEM
+        function checkCollisions(pos, dir) {
+            // Create capsule collider for player
+            const capsule = {
+                start: new THREE.Vector3(pos.x, pos.y - playerCollider.height/2 + playerCollider.radius, pos.z),
+                end: new THREE.Vector3(pos.x, pos.y + playerCollider.height/2 - playerCollider.radius, pos.z),
+                radius: playerCollider.radius
+            };
+            
+            // Create movement vector
+            const moveVec = new THREE.Vector3(dir.x, dir.y, dir.z);
+            
+            // Check against all collidable objects
+            for (const object of collidableObjects) {
+                if (object.geometry.type === 'BoxGeometry') {
+                    const box = new THREE.Box3().setFromObject(object);
+                    box.expandByScalar(playerCollider.radius);
+                    
+                    // Create ray from current to next position
+                    const ray = new THREE.Ray(capsule.start, moveVec.clone().normalize());
+                    const rayLength = moveVec.length();
+                    
+                    // Check for intersection
+                    const intersection = new THREE.Vector3();
+                    const intersect = ray.intersectBox(box, intersection);
+                    
+                    if (intersect) {
+                        // Calculate distance to obstacle
+                        const distance = capsule.start.distanceTo(intersection);
+                        
+                        // If we're closer than our movement distance, collision occurs
+                        if (distance < rayLength + playerCollider.radius) {
+                            return true;
+                        }
+                    }
+                    
+                    // Additional check for top of capsule
+                    const rayTop = new THREE.Ray(capsule.end, moveVec.clone().normalize());
+                    const intersectTop = rayTop.intersectBox(box, intersection);
+                    
+                    if (intersectTop) {
+                        const distance = capsule.end.distanceTo(intersection);
+                        if (distance < rayLength + playerCollider.radius) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        
         // Keyboard controls
         document.addEventListener('keydown', e => {
             if (!gameStarted) return;
@@ -678,6 +853,12 @@
                 canJump = false;
                 playSound('jump', 0.7);
             }
+            if (e.code === 'ShiftLeft' && !sprintCooldown && stamina > 0) {
+                isSprinting = true;
+                staminaContainer.style.display = 'block';
+                sprintEffect.style.opacity = '0.3';
+                playSound('sprint', 0.4);
+            }
         });
         
         document.addEventListener('keyup', e => {
@@ -685,6 +866,10 @@
             if (e.code === 'KeyS') move.back = false;
             if (e.code === 'KeyA') move.left = false;
             if (e.code === 'KeyD') move.right = false;
+            if (e.code === 'ShiftLeft') {
+                isSprinting = false;
+                sprintEffect.style.opacity = '0';
+            }
         });
         
         // ——————————————————————
@@ -703,33 +888,21 @@
             camera.position.set(0, 1.6, 0);
             
             // Play wind sound
-            if (soundEnabled) {
-                const windSource = audioContext.createBufferSource();
-                windSource.buffer = sounds['wind'];
-                windSource.loop = true;
-                
-                const windGain = audioContext.createGain();
-                windGain.gain.value = 0.2 * (gainNode.gain.value);
-                
-                windSource.connect(windGain);
-                windGain.connect(audioContext.destination);
-                
-                windSource.start(0);
-            }
+            playSound('wind', 0.2);
         });
         
         particleToggle.addEventListener('click', () => {
             particlesEnabled = !particlesEnabled;
-            particleToggle.textContent = particlesEnabled ? '❄ Disable Snow' : '❄ Enable Snow';
+            particleToggle.textContent = particlesEnabled ? '❄ DISABLE SNOW' : '❄ ENABLE SNOW';
         });
         
         soundToggle.addEventListener('click', () => {
             soundEnabled = !soundEnabled;
-            soundToggle.innerHTML = soundEnabled ? '🔊 Disable Sound' : '🔇 Enable Sound';
+            soundToggle.innerHTML = soundEnabled ? '🔊 DISABLE SOUND' : '🔇 ENABLE SOUND';
         });
         
         // ——————————————————————
-        // 8️⃣ Animation Loop
+        // 8️⃣ Animation Loop with Sprint & Exhaustion
         // ——————————————————————
         function animate() {
             requestAnimationFrame(animate);
@@ -743,25 +916,108 @@
                 // Apply damping for smoother movement
                 velocity.x *= Math.exp(-12 * dt);
                 velocity.z *= Math.exp(-12 * dt);
+                
+                // Handle sprinting
+                if (isSprinting && stamina > 0) {
+                    currentSpeed = sprintSpeed;
+                    stamina = Math.max(0, stamina - dt * 25);
+                    speedValue.textContent = "200%";
+                    speedValue.style.color = "#ffffff";
+                    
+                    // Disable sprint if stamina runs out
+                    if (stamina <= 0) {
+                        isSprinting = false;
+                        sprintEffect.style.opacity = '0';
+                        exhausted = true;
+                        staminaWarning.style.display = 'block';
+                        playSound('breath', 0.6);
+                        setTimeout(() => {
+                            staminaWarning.style.display = 'none';
+                        }, 3000);
+                    }
+                } else {
+                    currentSpeed = baseSpeed;
+                    stamina = Math.min(100, stamina + dt * 15);
+                    speedValue.textContent = "100%";
+                    speedValue.style.color = "#ffffff";
+                    
+                    // Cooldown if stamina is depleted
+                    if (stamina <= 0) {
+                        sprintCooldown = true;
+                        setTimeout(() => {
+                            sprintCooldown = false;
+                        }, 2000);
+                    }
+                }
+                
+                // Update stamina bar
+                staminaBar.style.width = `${stamina}%`;
+                
+                // Handle exhaustion effects
+                if (stamina <= 0) {
+                    // Show red exhaustion overlay
+                    exhaustionOverlay.style.opacity = '0.6';
+                    
+                    // Show heartbeat effect
+                    heartbeatEffect.style.opacity = '1';
+                    
+                    // Animate heartbeat lines
+                    const heartbeat1 = document.getElementById('heartbeat-line-1');
+                    const heartbeat2 = document.getElementById('heartbeat-line-2');
+                    
+                    heartbeat1.style.animation = 'none';
+                    heartbeat2.style.animation = 'none';
+                    setTimeout(() => {
+                        heartbeat1.style.animation = 'heartbeatPulse 1.2s infinite';
+                        heartbeat2.style.animation = 'heartbeatPulse 1.2s infinite 0.4s';
+                    }, 10);
+                    
+                    // Play heartbeat sound occasionally
+                    if (time - lastBreathTime > 1.2) {
+                        playSound('heartbeat', 0.5);
+                        lastBreathTime = time;
+                    }
+                } else if (stamina < 30) {
+                    // Partial exhaustion effect
+                    exhaustionOverlay.style.opacity = `${0.3 * (1 - stamina/30)}`;
+                    heartbeatEffect.style.opacity = `${0.6 * (1 - stamina/30)}`;
+                } else {
+                    // Hide exhaustion effects
+                    exhaustionOverlay.style.opacity = '0';
+                    heartbeatEffect.style.opacity = '0';
+                    exhausted = false;
+                }
         
                 // Get movement direction
                 const dir = getMoveDirection();
                 
-                // Apply movement with reduced speed
-                velocity.x += dir.x * currentSpeed * dt;
-                velocity.z += dir.z * currentSpeed * dt;
+                // Calculate horizontal movement
+                const moveX = dir.x * currentSpeed * dt;
+                const moveZ = dir.z * currentSpeed * dt;
+                
+                // Check for collisions before moving
+                const newPos = controls.getObject().position.clone();
+                newPos.x += moveX;
+                newPos.z += moveZ;
+                
+                // Only apply movement if no collision
+                if (!checkCollisions(controls.getObject().position, new THREE.Vector3(moveX, 0, moveZ))) {
+                    controls.getObject().position.x += moveX;
+                    controls.getObject().position.z += moveZ;
+                }
         
                 const pos = controls.getObject().position;
         
-                pos.x += velocity.x;
-                pos.z += velocity.z;
-        
                 // Ground and platform collision
+                const raycaster = new THREE.Raycaster();
                 raycaster.ray.origin.copy(pos);
-                const hits = raycaster.intersectObjects(scene.children, true);
+                raycaster.ray.direction.set(0, -1, 0);
+                raycaster.far = 1.8; // Slightly larger to prevent falling through
+                
+                const hits = raycaster.intersectObjects(collidableObjects, true);
                 if (hits.length > 0) {
                     const dist = hits[0].distance;
-                    if (dist < 1.6) {
+                    if (dist < 1.7) {
                         // Play landing sound if we just landed
                         if (velocity.y < -2) {
                             playSound('land', 0.5);
@@ -769,11 +1025,12 @@
                         
                         velocity.y = Math.max(0, velocity.y);
                         canJump = true;
-                        pos.y = hits[0].point.y + 1.6;
+                        pos.y = hits[0].point.y + 1.7; // Adjusted to prevent sinking
                         
                         // Footstep sounds
-                        if ((move.forward || move.back || move.left || move.right) && time - lastFootstep > 0.5) {
-                            playSound('footstep', 0.4);
+                        const footstepInterval = isSprinting ? 0.3 : 0.5;
+                        if ((move.forward || move.back || move.left || move.right) && time - lastFootstep > footstepInterval) {
+                            playSound('footstep', isSprinting ? 0.6 : 0.4);
                             lastFootstep = time;
                         }
                     }
@@ -843,6 +1100,17 @@
             
             requestAnimationFrame(updateTitleSnow);
         }
+        
+        // Add heartbeat animation to styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes heartbeatPulse {
+                0% { transform: scale(0); opacity: 0.8; }
+                50% { transform: scale(1.5); opacity: 0; }
+                100% { transform: scale(1.5); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
         
         createTitleSnow();
         updateTitleSnow();
