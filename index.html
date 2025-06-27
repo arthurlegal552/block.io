@@ -551,60 +551,82 @@
         const sprintKey = document.getElementById('sprint-key');
         
         // Sound elements
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let sounds = {};
-        let gainNode = audioContext.createGain();
-        gainNode.connect(audioContext.destination);
+        let gainNode;
+        let audioContext;
         
-        // List of local sound files in your project's sounds folder
+        // List of local sound files
         const soundFiles = [
             { name: 'ambient', path: 'ambient.mp3' },
             { name: 'footstep', path: 'footstep.mp3' },
             { name: 'jump', path: 'roblox-classic-jump.mp3' },
             { name: 'land', path: 'loud-bone-crack.mp3' },
-            { name: 'wind', path: 'wind.mp3' },
+            { name: 'wind', path: 'asd.mp3' },
             { name: 'sprint', path: 'fnaf-footstep.mp3' },
             { name: 'breath', path: 'dramaticbreathing.mp3' },
             { name: 'heartbeat', path: 'heartbeatloop.mp3' },
             { name: 'blocked', path: 'minecraft-pickaxe-sound.mp3' }
         ];
         
+        // Initialize audio context
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.value = volumeSlider.value / 100;
+                
+                // Load sounds
+                loadGameSounds();
+            } catch (e) {
+                console.error("Audio initialization failed:", e);
+                soundEnabled = false;
+                soundToggle.innerHTML = "🔇 SOUND DISABLED";
+                soundToggle.style.backgroundColor = "#ff4444";
+                loadingScreen.style.display = "none";
+            }
+        }
+        
         // Load sounds from local files
         function loadGameSounds() {
             let loadedCount = 0;
+            const totalSounds = soundFiles.length;
             
             soundFiles.forEach(sound => {
-                fetch(sound.path)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Failed to load ${sound.path}: ${response.statusText}`);
-                        }
-                        return response.arrayBuffer();
-                    })
-                    .then(data => audioContext.decodeAudioData(data))
-                    .then(buffer => {
-                        sounds[sound.name] = buffer;
-                        loadedCount++;
-                        
-                        // Update loading progress
-                        const progress = Math.floor((loadedCount / soundFiles.length) * 100);
-                        loadingBar.style.width = `${progress}%`;
-                        loadingText.textContent = `Loading assets: ${progress}%`;
-                        
-                        // Hide loading screen when all sounds are loaded
-                        if (loadedCount === soundFiles.length) {
+                sounds[sound.name] = new Audio(sound.path);
+                sounds[sound.name].preload = "auto";
+                sounds[sound.name].oncanplaythrough = () => {
+                    loadedCount++;
+                    
+                    // Update loading progress
+                    const progress = Math.floor((loadedCount / totalSounds) * 100);
+                    loadingBar.style.width = `${progress}%`;
+                    loadingText.textContent = `Loading assets: ${progress}%`;
+                    
+                    // Hide loading screen when all sounds are loaded
+                    if (loadedCount === totalSounds) {
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
                             setTimeout(() => {
-                                loadingScreen.style.opacity = '0';
-                                setTimeout(() => {
-                                    loadingScreen.style.display = 'none';
-                                }, 500);
+                                loadingScreen.style.display = 'none';
                             }, 500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error(`Error loading ${sound.path}:`, error);
-                        loadedCount++;
-                    });
+                        }, 500);
+                    }
+                };
+                sounds[sound.name].onerror = () => {
+                    console.error(`Failed to load sound: ${sound.name}`);
+                    loadedCount++;
+                    loadingBar.style.width = `${Math.floor((loadedCount / totalSounds) * 100)}%`;
+                    
+                    if (loadedCount === totalSounds) {
+                        setTimeout(() => {
+                            loadingScreen.style.opacity = '0';
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                            }, 500);
+                        }, 500);
+                    }
+                };
             });
         }
         
@@ -612,56 +634,29 @@
         function playSound(name, volume = 1) {
             if (!soundEnabled || !sounds[name]) return;
             
-            const source = audioContext.createBufferSource();
-            source.buffer = sounds[name];
-            
-            const soundGain = audioContext.createGain();
-            soundGain.gain.value = volume * (gainNode.gain.value);
-            
-            source.connect(soundGain);
-            soundGain.connect(audioContext.destination);
-            
-            source.start(0);
-            return source;
+            try {
+                const sound = sounds[name].cloneNode();
+                sound.volume = volume * (gainNode.gain.value);
+                sound.play().catch(e => console.warn(`Sound play failed: ${e.message}`));
+            } catch (e) {
+                console.error(`Error playing sound ${name}:`, e);
+            }
         }
         
         // Set volume
         volumeSlider.addEventListener('input', () => {
             const volume = volumeSlider.value / 100;
-            gainNode.gain.value = volume;
+            if (gainNode) gainNode.gain.value = volume;
             volumeValue.textContent = volumeSlider.value + '%';
         });
         
-        // Start loading sounds
-        loadGameSounds();
+        // Initialize audio when user interacts
+        document.addEventListener('click', () => {
+            if (!audioContext) {
+                initAudio();
+            }
+        }, { once: true });
 
-        function startSprintSound(volume = 1) {
-    if (!soundEnabled || !sounds['sprint'] || isSprinting) return;
-
-    sprintSource = audioContext.createBufferSource();
-    sprintSource.buffer = sounds['sprint'];
-    sprintSource.loop = true;
-
-    const sprintGain = audioContext.createGain();
-    sprintGain.gain.value = volume * (gainNode.gain.value);
-
-    sprintSource.connect(sprintGain);
-    sprintGain.connect(audioContext.destination);
-
-    sprintSource.start(0);
-    isSprinting = true;
-}
-
-function stopSprintSound() {
-    if (sprintSource) {
-        sprintSource.stop();
-        sprintSource.disconnect();
-        sprintSource = null;
-        isSprinting = false;
-    }
-}
-
-        
         // ——————————————————————
         // 1️⃣ Scene Setup
         // ——————————————————————
@@ -990,7 +985,7 @@ function stopSprintSound() {
                         // Play sprint sound only once when sprint starts
                         const now = performance.now() / 1000;
                         if (now - lastSprintSoundTime > sprintSoundCooldown) {
-                            startSprintSound(0.8); // Ajuste o volume conforme necessário
+                            playSound('sprint', 0.8);
                             lastSprintSoundTime = now;
                         }
                     }
@@ -1005,7 +1000,6 @@ function stopSprintSound() {
             if (e.code === 'KeyD') move.right = false;
             if (e.code === 'ShiftLeft') {
                 isSprinting = false;
-                stopSprintSound();
                 sprintEffect.style.opacity = '0';
             }
         });
@@ -1065,7 +1059,6 @@ function stopSprintSound() {
                     // Disable sprint if stamina runs out
                     if (stamina <= 0) {
                         isSprinting = false;
-                        stopSprintSound();
                         sprintEffect.style.opacity = '0';
                         exhausted = true;
                         sprintBlocked = true; // Block sprint button
