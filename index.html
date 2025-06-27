@@ -433,6 +433,21 @@
             font-size: 1.4rem;
             text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
         }
+        
+        #audio-status {
+            position: absolute;
+            bottom: 60px;
+            right: 20px;
+            background: rgba(200, 0, 0, 0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 50;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -493,6 +508,7 @@
             <div id="stamina-bar"></div>
         </div>
         <div id="stamina-warning">STAMINA DEPLETED! RECOVERING...</div>
+        <div id="audio-status">AUDIO SYSTEM READY</div>
         
         <div id="volume-control">
             <div>VOLUME: <span id="volume-value">70%</span></div>
@@ -549,22 +565,25 @@
         const loadingBar = document.getElementById('loading-bar');
         const loadingText = document.getElementById('loading-text');
         const sprintKey = document.getElementById('sprint-key');
+        const audioStatus = document.getElementById('audio-status');
         
         // Sound elements
-        let sounds = {};
-        let gainNode;
         let audioContext;
+        let gainNode;
+        let sounds = {};
+        let lastPlayed = {};
+        let minPlayDelay = 100; // Minimum delay between same sound plays in ms
         
         // List of local sound files
         const soundFiles = [
-            { name: 'ambient', path: 'ambient.mp3' },
+            { name: 'ambient', path: 'ambient.mp3', loop: true },
             { name: 'footstep', path: 'footstep.mp3' },
             { name: 'jump', path: 'roblox-classic-jump.mp3' },
             { name: 'land', path: 'loud-bone-crack.mp3' },
-            { name: 'wind', path: 'asd.mp3' },
+            { name: 'wind', path: 'asd.mp3', loop: true },
             { name: 'sprint', path: 'fnaf-footstep.mp3' },
             { name: 'breath', path: 'dramaticbreathing.mp3' },
-            { name: 'heartbeat', path: 'heartbeatloop.mp3' },
+            { name: 'heartbeat', path: 'heartbeatloop.mp3', loop: true },
             { name: 'blocked', path: 'minecraft-pickaxe-sound.mp3' }
         ];
         
@@ -587,57 +606,91 @@
             }
         }
         
-        // Load sounds from local files
+        // Load sounds from local files using Web Audio API
         function loadGameSounds() {
             let loadedCount = 0;
             const totalSounds = soundFiles.length;
             
             soundFiles.forEach(sound => {
-                sounds[sound.name] = new Audio(sound.path);
-                sounds[sound.name].preload = "auto";
-                sounds[sound.name].oncanplaythrough = () => {
-                    loadedCount++;
-                    
-                    // Update loading progress
-                    const progress = Math.floor((loadedCount / totalSounds) * 100);
-                    loadingBar.style.width = `${progress}%`;
-                    loadingText.textContent = `Loading assets: ${progress}%`;
-                    
-                    // Hide loading screen when all sounds are loaded
-                    if (loadedCount === totalSounds) {
-                        setTimeout(() => {
-                            loadingScreen.style.opacity = '0';
+                fetch(sound.path)
+                    .then(response => response.arrayBuffer())
+                    .then(data => audioContext.decodeAudioData(data))
+                    .then(buffer => {
+                        sounds[sound.name] = {
+                            buffer: buffer,
+                            loop: sound.loop || false
+                        };
+                        
+                        loadedCount++;
+                        const progress = Math.floor((loadedCount / totalSounds) * 100);
+                        loadingBar.style.width = `${progress}%`;
+                        loadingText.textContent = `Loading assets: ${progress}%`;
+                        
+                        if (loadedCount === totalSounds) {
                             setTimeout(() => {
-                                loadingScreen.style.display = 'none';
+                                loadingScreen.style.opacity = '0';
+                                setTimeout(() => {
+                                    loadingScreen.style.display = 'none';
+                                }, 500);
                             }, 500);
-                        }, 500);
-                    }
-                };
-                sounds[sound.name].onerror = () => {
-                    console.error(`Failed to load sound: ${sound.name}`);
-                    loadedCount++;
-                    loadingBar.style.width = `${Math.floor((loadedCount / totalSounds) * 100)}%`;
-                    
-                    if (loadedCount === totalSounds) {
-                        setTimeout(() => {
-                            loadingScreen.style.opacity = '0';
+                            
+                            // Show audio status
+                            audioStatus.textContent = "AUDIO SYSTEM READY";
+                            audioStatus.style.display = "block";
+                            audioStatus.style.background = "rgba(0, 200, 0, 0.7)";
                             setTimeout(() => {
-                                loadingScreen.style.display = 'none';
+                                audioStatus.style.display = "none";
+                            }, 3000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error loading ${sound.name}:`, error);
+                        loadedCount++;
+                        loadingBar.style.width = `${Math.floor((loadedCount / totalSounds) * 100)}%`;
+                        
+                        if (loadedCount === totalSounds) {
+                            setTimeout(() => {
+                                loadingScreen.style.opacity = '0';
+                                setTimeout(() => {
+                                    loadingScreen.style.display = 'none';
+                                }, 500);
                             }, 500);
-                        }, 500);
-                    }
-                };
+                            
+                            audioStatus.textContent = "AUDIO LOADING FAILED";
+                            audioStatus.style.display = "block";
+                        }
+                    });
             });
         }
         
-        // Play a sound
+        // Play a sound with rate limiting
         function playSound(name, volume = 1) {
-            if (!soundEnabled || !sounds[name]) return;
+            if (!soundEnabled || !sounds[name] || !audioContext) return;
+            
+            // Rate limiting to prevent sound spam
+            const now = Date.now();
+            if (lastPlayed[name] && now - lastPlayed[name] < minPlayDelay) {
+                return;
+            }
+            lastPlayed[name] = now;
             
             try {
-                const sound = sounds[name].cloneNode();
-                sound.volume = volume * (gainNode.gain.value);
-                sound.play().catch(e => console.warn(`Sound play failed: ${e.message}`));
+                const source = audioContext.createBufferSource();
+                source.buffer = sounds[name].buffer;
+                
+                // Create a gain node for this sound
+                const soundGain = audioContext.createGain();
+                soundGain.gain.value = volume * (gainNode.gain.value);
+                
+                source.connect(soundGain);
+                soundGain.connect(audioContext.destination);
+                
+                // Set looping if needed
+                if (sounds[name].loop) {
+                    source.loop = true;
+                }
+                
+                source.start(0);
             } catch (e) {
                 console.error(`Error playing sound ${name}:`, e);
             }
