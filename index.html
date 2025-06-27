@@ -148,6 +148,12 @@
             font-size: 1.2rem;
             color: #fff;
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .key-disabled {
+            opacity: 0.4;
+            border-color: rgba(255, 50, 50, 0.5);
         }
         
         .key-label {
@@ -411,6 +417,22 @@
             margin-top: 10px;
             font-size: 1rem;
         }
+        
+        .sprint-blocked {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(255, 50, 50, 0.8);
+            font-weight: bold;
+            font-size: 1.4rem;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -426,7 +448,7 @@
         <div id="title-screen">
             <h1>❄️ SNOWY PARKOUR ❄️</h1>
             <p>Navigate through a winter wonderland with enhanced movement. Press SHIFT to sprint through the snow!</p>
-            <p>Stamina system added - when exhausted, you'll need to recover before sprinting again.</p>
+            <p>Stamina system added - sprint will be blocked when exhausted!</p>
             <button id="start-btn">START JOURNEY</button>
         </div>
         
@@ -454,7 +476,7 @@
                     <div class="key-label">Jump</div>
                 </div>
                 <div class="key-row">
-                    <div class="key">SHIFT</div>
+                    <div class="key" id="sprint-key">SHIFT</div>
                     <div class="key-label">Sprint</div>
                 </div>
             </div>
@@ -505,7 +527,8 @@
         let exhausted = false;
         let lastBreathTime = 0;
         let lastSprintSoundTime = 0;
-        let sprintSoundCooldown = 0.5; // Cooldown for sprint sound in seconds
+        let sprintSoundCooldown = 0.5;
+        let sprintBlocked = false;
         
         // UI Elements
         const titleScreen = document.getElementById('title-screen');
@@ -525,6 +548,7 @@
         const loadingScreen = document.getElementById('loading-screen');
         const loadingBar = document.getElementById('loading-bar');
         const loadingText = document.getElementById('loading-text');
+        const sprintKey = document.getElementById('sprint-key');
         
         // Sound elements
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -538,10 +562,11 @@
             { name: 'footstep', path: 'footstep.mp3' },
             { name: 'jump', path: 'roblox-classic-jump.mp3' },
             { name: 'land', path: 'loud-bone-crack.mp3' },
-            { name: 'wind', path: 'sounds/wind.mp3' },
+            { name: 'wind', path: 'wind.mp3' },
             { name: 'sprint', path: 'footstep-mario-64.mp3' },
             { name: 'breath', path: 'dramaticbreathing.mp3' },
-            { name: 'heartbeat', path: 'heartbeatloop.mp3' }
+            { name: 'heartbeat', path: 'heartbeatloop.mp3' },
+            { name: 'blocked', path: 'blocked.mp3' }
         ];
         
         // Load sounds from local files
@@ -921,18 +946,26 @@
                 canJump = false;
                 playSound('jump', 0.7);
             }
-            if (e.code === 'ShiftLeft' && !sprintCooldown && stamina > 0) {
-                // Only start sprinting if not already sprinting
-                if (!isSprinting) {
-                    isSprinting = true;
-                    staminaContainer.style.display = 'block';
-                    sprintEffect.style.opacity = '0.3';
-                    
-                    // Play sprint sound only once when sprint starts
-                    const now = performance.now() / 1000;
-                    if (now - lastSprintSoundTime > sprintSoundCooldown) {
-                        playSound('sprint', 0.4);
-                        lastSprintSoundTime = now;
+            if (e.code === 'ShiftLeft') {
+                if (sprintBlocked) {
+                    // Play blocked sound if player tries to sprint while exhausted
+                    playSound('blocked', 0.6);
+                    return;
+                }
+                
+                if (!sprintCooldown && stamina > 0) {
+                    // Only start sprinting if not already sprinting
+                    if (!isSprinting) {
+                        isSprinting = true;
+                        staminaContainer.style.display = 'block';
+                        sprintEffect.style.opacity = '0.3';
+                        
+                        // Play sprint sound only once when sprint starts
+                        const now = performance.now() / 1000;
+                        if (now - lastSprintSoundTime > sprintSoundCooldown) {
+                            playSound('sprint', 0.4);
+                            lastSprintSoundTime = now;
+                        }
                     }
                 }
             }
@@ -979,7 +1012,7 @@
         });
         
         // ——————————————————————
-        // 8️⃣ Animation Loop with Sprint & Exhaustion
+        // 8️⃣ Animation Loop with Sprint Block
         // ——————————————————————
         function animate() {
             requestAnimationFrame(animate);
@@ -1006,6 +1039,10 @@
                         isSprinting = false;
                         sprintEffect.style.opacity = '0';
                         exhausted = true;
+                        sprintBlocked = true; // Block sprint button
+                        sprintKey.classList.add('key-disabled');
+                        
+                        // Show stamina warning
                         staminaWarning.style.display = 'block';
                         playSound('breath', 0.6);
                         setTimeout(() => {
@@ -1017,6 +1054,12 @@
                     stamina = Math.min(100, stamina + dt * 15);
                     speedValue.textContent = "100%";
                     speedValue.style.color = "#ffffff";
+                    
+                    // Unblock sprint when stamina recovers sufficiently
+                    if (sprintBlocked && stamina >= 30) {
+                        sprintBlocked = false;
+                        sprintKey.classList.remove('key-disabled');
+                    }
                     
                     // Cooldown if stamina is depleted
                     if (stamina <= 0) {
