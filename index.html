@@ -374,10 +374,55 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
         }
+        
+        #loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        #loading-progress {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        #loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #4fc3f7, #00bcd4);
+            transition: width 0.3s;
+        }
+        
+        #loading-text {
+            margin-top: 10px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
+        <div id="loading-screen">
+            <h2>LOADING SNOWY PARKOUR...</h2>
+            <div id="loading-progress">
+                <div id="loading-bar"></div>
+            </div>
+            <div id="loading-text">Loading assets: 0%</div>
+        </div>
+        
         <div id="title-screen">
             <h1>❄️ SNOWY PARKOUR ❄️</h1>
             <p>Navigate through a winter wonderland with enhanced movement. Press SHIFT to sprint through the snow!</p>
@@ -475,6 +520,9 @@
         const exhaustionOverlay = document.getElementById('exhaustion-overlay');
         const heartbeatEffect = document.getElementById('heartbeat-effect');
         const staminaWarning = document.getElementById('stamina-warning');
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingBar = document.getElementById('loading-bar');
+        const loadingText = document.getElementById('loading-text');
         
         // Sound elements
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -482,19 +530,60 @@
         let gainNode = audioContext.createGain();
         gainNode.connect(audioContext.destination);
         
-        // Load sounds
-        function loadSound(url, name) {
-            return fetch(url)
-                .then(response => response.arrayBuffer())
-                .then(data => audioContext.decodeAudioData(data))
-                .then(buffer => {
-                    sounds[name] = buffer;
-                });
+        // List of local sound files in your project's sounds folder
+        const soundFiles = [
+            { name: 'ambient', path: 'ambient.mp3' },
+            { name: 'footstep', path: 'footstep.mp3' },
+            { name: 'jump', path: 'roblox-classic-jump.mp3' },
+            { name: 'land', path: 'loud-bone-crack.mp3' },
+            { name: 'wind', path: 'sounds/wind.mp3' },
+            { name: 'sprint', path: 'footstep-mario-64.mp3' },
+            { name: 'breath', path: 'dramaticbreathing.mp3' },
+            { name: 'heartbeat', path: 'heartbeatloop.mp3' }
+        ];
+        
+        // Load sounds from local files
+        function loadGameSounds() {
+            let loadedCount = 0;
+            
+            soundFiles.forEach(sound => {
+                fetch(sound.path)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Failed to load ${sound.path}: ${response.statusText}`);
+                        }
+                        return response.arrayBuffer();
+                    })
+                    .then(data => audioContext.decodeAudioData(data))
+                    .then(buffer => {
+                        sounds[sound.name] = buffer;
+                        loadedCount++;
+                        
+                        // Update loading progress
+                        const progress = Math.floor((loadedCount / soundFiles.length) * 100);
+                        loadingBar.style.width = `${progress}%`;
+                        loadingText.textContent = `Loading assets: ${progress}%`;
+                        
+                        // Hide loading screen when all sounds are loaded
+                        if (loadedCount === soundFiles.length) {
+                            setTimeout(() => {
+                                loadingScreen.style.opacity = '0';
+                                setTimeout(() => {
+                                    loadingScreen.style.display = 'none';
+                                }, 500);
+                            }, 500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error loading ${sound.path}:`, error);
+                        loadedCount++;
+                    });
+            });
         }
         
         // Play a sound
         function playSound(name, volume = 1) {
-            if (!soundEnabled) return;
+            if (!soundEnabled || !sounds[name]) return;
             
             const source = audioContext.createBufferSource();
             source.buffer = sounds[name];
@@ -514,30 +603,6 @@
             gainNode.gain.value = volume;
             volumeValue.textContent = volumeSlider.value + '%';
         });
-        
-        // Load all sounds
-        function loadGameSounds() {
-            const soundUrls = {
-                ambient: 'https://github.com/arthurlegal552/uncanny-zazu/raw/main/sounds/hotel.mp3',
-                footstep: 'https://github.com/arthurlegal552/block.io/raw/main/footsteps.mp3',
-                jump: 'https://assets.mixkit.co/sfx/preview/mixkit-jump-landing-2061.mp3',
-                land: 'https://assets.mixkit.co/sfx/preview/mixkit-ice-crack-1717.mp3',
-                wind: 'https://assets.mixkit.co/sfx/preview/mixkit-wind-whistling-1249.mp3',
-                sprint: 'https://assets.mixkit.co/sfx/preview/mixkit-whoosh-1121.mp3',
-                breath: 'https://assets.mixkit.co/sfx/preview/mixkit-heavy-breathing-1170.mp3',
-                heartbeat: 'https://assets.mixkit.co/sfx/preview/mixkit-single-heartbeat-766.mp3'
-            };
-            
-            const loadPromises = Object.entries(soundUrls).map(([name, url]) => 
-                loadSound(url, name).catch(e => console.error(`Error loading ${name} sound:`, e))
-            );
-            
-            Promise.all(loadPromises).then(() => {
-                console.log("All sounds loaded");
-                // Play ambient sound on title screen
-                playSound('ambient', 0.3);
-            });
-        }
         
         // Start loading sounds
         loadGameSounds();
@@ -1063,6 +1128,17 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
         
+        // Add heartbeat animation to styles
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes heartbeatPulse {
+                0% { transform: scale(0); opacity: 0.8; }
+                50% { transform: scale(1.5); opacity: 0; }
+                100% { transform: scale(1.5); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
         // Create some DOM snowflakes for the title screen
         function createTitleSnow() {
             for (let i = 0; i < 100; i++) {
@@ -1100,17 +1176,6 @@
             
             requestAnimationFrame(updateTitleSnow);
         }
-        
-        // Add heartbeat animation to styles
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes heartbeatPulse {
-                0% { transform: scale(0); opacity: 0.8; }
-                50% { transform: scale(1.5); opacity: 0; }
-                100% { transform: scale(1.5); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
         
         createTitleSnow();
         updateTitleSnow();
