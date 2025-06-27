@@ -504,6 +504,8 @@
         let sprintCooldown = false;
         let exhausted = false;
         let lastBreathTime = 0;
+        let lastSprintSoundTime = 0;
+        let sprintSoundCooldown = 0.5; // Cooldown for sprint sound in seconds
         
         // UI Elements
         const titleScreen = document.getElementById('title-screen');
@@ -595,6 +597,7 @@
             soundGain.connect(audioContext.destination);
             
             source.start(0);
+            return source;
         }
         
         // Set volume
@@ -919,10 +922,19 @@
                 playSound('jump', 0.7);
             }
             if (e.code === 'ShiftLeft' && !sprintCooldown && stamina > 0) {
-                isSprinting = true;
-                staminaContainer.style.display = 'block';
-                sprintEffect.style.opacity = '0.3';
-                playSound('sprint', 0.4);
+                // Only start sprinting if not already sprinting
+                if (!isSprinting) {
+                    isSprinting = true;
+                    staminaContainer.style.display = 'block';
+                    sprintEffect.style.opacity = '0.3';
+                    
+                    // Play sprint sound only once when sprint starts
+                    const now = performance.now() / 1000;
+                    if (now - lastSprintSoundTime > sprintSoundCooldown) {
+                        playSound('sprint', 0.4);
+                        lastSprintSoundTime = now;
+                    }
+                }
             }
         });
         
