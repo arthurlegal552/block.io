@@ -634,6 +634,33 @@
         
         // Start loading sounds
         loadGameSounds();
+
+        function startSprintSound(volume = 1) {
+    if (!soundEnabled || !sounds['sprint'] || isSprinting) return;
+
+    sprintSource = audioContext.createBufferSource();
+    sprintSource.buffer = sounds['sprint'];
+    sprintSource.loop = true;
+
+    const sprintGain = audioContext.createGain();
+    sprintGain.gain.value = volume * (gainNode.gain.value);
+
+    sprintSource.connect(sprintGain);
+    sprintGain.connect(audioContext.destination);
+
+    sprintSource.start(0);
+    isSprinting = true;
+}
+
+function stopSprintSound() {
+    if (sprintSource) {
+        sprintSource.stop();
+        sprintSource.disconnect();
+        sprintSource = null;
+        isSprinting = false;
+    }
+}
+
         
         // ——————————————————————
         // 1️⃣ Scene Setup
@@ -963,7 +990,7 @@
                         // Play sprint sound only once when sprint starts
                         const now = performance.now() / 1000;
                         if (now - lastSprintSoundTime > sprintSoundCooldown) {
-                            playSound('sprint', 0.4);
+                            startSprintSound(0.8); // Ajuste o volume conforme necessário
                             lastSprintSoundTime = now;
                         }
                     }
@@ -978,6 +1005,7 @@
             if (e.code === 'KeyD') move.right = false;
             if (e.code === 'ShiftLeft') {
                 isSprinting = false;
+                stopSprintSound();
                 sprintEffect.style.opacity = '0';
             }
         });
@@ -1037,6 +1065,7 @@
                     // Disable sprint if stamina runs out
                     if (stamina <= 0) {
                         isSprinting = false;
+                        stopSprintSound();
                         sprintEffect.style.opacity = '0';
                         exhausted = true;
                         sprintBlocked = true; // Block sprint button
