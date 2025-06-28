@@ -448,6 +448,109 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0, 200, 0, 0.5);
         }
+        
+        /* NEW: Weapon UI */
+        #weapon-container {
+            position: absolute;
+            bottom: 30px;
+            right: 50%;
+            transform: translateX(50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        #weapon-info {
+            background: rgba(20, 20, 25, 0.85);
+            padding: 8px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border: 1px solid rgba(200, 200, 200, 0.3);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        #weapon-name {
+            color: #4db8ff;
+            font-weight: bold;
+        }
+        
+        #weapon-hint {
+            position: absolute;
+            bottom: 100px;
+            right: 50%;
+            transform: translateX(50%);
+            background: rgba(20, 20, 25, 0.85);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            border: 1px solid rgba(200, 200, 200, 0.3);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        
+        /* NEW: Axe swing animation */
+        .axe-swing {
+            animation: swingAxe 0.4s ease-out;
+        }
+        
+        @keyframes swingAxe {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            50% { transform: rotate(-45deg) translate(-0.2, -0.2); }
+            100% { transform: rotate(0deg) translate(0, 0); }
+        }
+        
+        /* NEW: Weapon pick up notification */
+        #weapon-notification {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.5rem;
+            z-index: 100;
+            display: none;
+            text-align: center;
+            border: 2px solid #4db8ff;
+            box-shadow: 0 0 20px rgba(77, 184, 255, 0.5);
+            animation: fadeInOut 3s ease;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            20% { opacity: 1; transform: translate(-50%, -50%); }
+            80% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -60%); }
+        }
+        
+        #weapon-notification .weapon-name {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #4db8ff;
+            text-shadow: 0 0 10px rgba(77, 184, 255, 0.8);
+        }
+        
+        /* NEW: Axe damage indicator */
+        #damage-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff5555;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -463,9 +566,28 @@
         <div id="title-screen">
             <h1>❄️ SNOWY PARKOUR ❄️</h1>
             <p>Navigate through a winter wonderland with enhanced movement. Press SHIFT to sprint through the snow!</p>
-            <p>Stamina system added - sprint will be blocked when exhausted!</p>
+            <p>Find the ancient axe to defend yourself against the frozen guardians!</p>
             <button id="start-btn">START JOURNEY</button>
         </div>
+        
+        <!-- NEW: Weapon UI -->
+        <div id="weapon-container">
+            <div id="weapon-info">
+                WEAPON: <span id="weapon-name">NONE</span>
+            </div>
+            <div id="weapon-hint">
+                LEFT CLICK TO ATTACK | RIGHT CLICK TO BLOCK
+            </div>
+        </div>
+        
+        <!-- NEW: Weapon notification -->
+        <div id="weapon-notification">
+            <div class="weapon-name">ANCIENT AXE ACQUIRED!</div>
+            <div>Use LEFT CLICK to attack and RIGHT CLICK to block</div>
+        </div>
+        
+        <!-- NEW: Damage indicator -->
+        <div id="damage-indicator">-10</div>
         
         <div id="ui-overlay">
             <div id="controls-panel">
@@ -494,6 +616,14 @@
                     <div class="key" id="sprint-key">SHIFT</div>
                     <div class="key-label">Sprint</div>
                 </div>
+                <div class="key-row">
+                    <div class="key">LMB</div>
+                    <div class="key-label">Attack</div>
+                </div>
+                <div class="key-row">
+                    <div class="key">RMB</div>
+                    <div class="key-label">Block</div>
+                </div>
             </div>
             
             <div id="speed-indicator">
@@ -516,7 +646,7 @@
         </div>
         
         <div id="instructions">
-            USE WASD TO MOVE, SPACE TO JUMP, AND SHIFT TO SPRINT!
+            USE WASD TO MOVE, SPACE TO JUMP, AND SHIFT TO SPRINT! FIND THE ANCIENT AXE TO DEFEND YOURSELF.
         </div>
         
         <div class="sprint-effect" id="sprint-effect"></div>
@@ -547,6 +677,17 @@
         let sprintBlocked = false;
         let sprintSoundSource = null; // To control the sprint sound loop
         
+        // NEW: Weapon system
+        let hasAxe = false;
+        let isAttacking = false;
+        let isBlocking = false;
+        let blockStamina = 100;
+        let lastAttackTime = 0;
+        let attackCooldown = 0.5;
+        let axeGroup = null;
+        let axeModel = null;
+        let armsModel = null;
+        
         // UI Elements
         const titleScreen = document.getElementById('title-screen');
         const startBtn = document.getElementById('start-btn');
@@ -567,6 +708,10 @@
         const loadingText = document.getElementById('loading-text');
         const sprintKey = document.getElementById('sprint-key');
         const audioStatus = document.getElementById('audio-status');
+        const weaponName = document.getElementById('weapon-name');
+        const weaponHint = document.getElementById('weapon-hint');
+        const weaponNotification = document.getElementById('weapon-notification');
+        const damageIndicator = document.getElementById('damage-indicator');
         
         // Sound elements
         let audioContext;
@@ -585,7 +730,12 @@
             { name: 'sprint', path: 'fnaf-footstep.mp3' }, // Sprint sound
             { name: 'breath', path: 'dramaticbreathing.mp3' },
             { name: 'heartbeat', path: 'heartbeatloop.mp3' },
-            { name: 'blocked', path: 'minecraft-pickaxe-sound.mp3' }
+            { name: 'blocked', path: 'minecraft-pickaxe-sound.mp3' },
+            // NEW: Weapon sounds
+            { name: 'axe_swing', path: 'axe-swing.mp3' },
+            { name: 'axe_hit', path: 'axe-hit.mp3' },
+            { name: 'axe_block', path: 'axe-block.mp3' },
+            { name: 'weapon_pickup', path: 'weapon-pickup.mp3' }
         ];
         
         // Initialize audio context
@@ -864,6 +1014,122 @@
         createBlock(-4, 1, -25, 1, 3, 1, 0x95a5a6);
         createBlock(0, 1, -35, 1, 4, 1, 0x95a5a6);
         
+        // NEW: Axe collectible
+        function createAxeCollectible(x, y, z) {
+            // Create a group for the axe
+            const axeGroup = new THREE.Group();
+            
+            // Create placeholder for the axe blade
+            const bladeGeometry = new THREE.BoxGeometry(0.5, 0.1, 0.05);
+            const bladeMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xaaaaaa,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+            blade.position.set(0, 0.1, 0);
+            blade.rotation.z = Math.PI / 4;
+            
+            // Create axe handle
+            const handleGeometry = new THREE.CylinderGeometry(0.03, 0.03, 1, 8);
+            const handleMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x8b4513,
+                roughness: 0.9
+            });
+            const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+            handle.position.set(0, -0.4, 0);
+            handle.rotation.z = Math.PI / 4;
+            
+            // Add parts to group
+            axeGroup.add(blade);
+            axeGroup.add(handle);
+            axeGroup.position.set(x, y, z);
+            axeGroup.userData = { type: 'axe', collected: false };
+            
+            // Add pulsing glow effect
+            const glowGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const glowMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x4db8ff,
+                transparent: true,
+                opacity: 0.5
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.set(0, 0, 0);
+            axeGroup.add(glow);
+            
+            scene.add(axeGroup);
+            return axeGroup;
+        }
+        
+        // Place the axe in the level
+        const axeCollectible = createAxeCollectible(0, 7, -45);
+        
+        // NEW: Create player arms with axe
+        function createPlayerArms() {
+            const armsGroup = new THREE.Group();
+            armsGroup.position.set(0.5, -0.4, -0.8); // Position in front of camera
+            
+            // Create placeholder for arms
+            const armGeometry = new THREE.BoxGeometry(0.1, 0.3, 0.1);
+            const armMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xffcc99,
+                roughness: 0.9
+            });
+            const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+            leftArm.position.set(-0.15, 0, 0);
+            
+            const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+            rightArm.position.set(0.15, 0, 0);
+            
+            armsGroup.add(leftArm);
+            armsGroup.add(rightArm);
+            
+            // Create the axe for the player's hands
+            const playerAxeGroup = new THREE.Group();
+            
+            // Axe blade
+            const bladeGeometry = new THREE.BoxGeometry(0.4, 0.08, 0.04);
+            const bladeMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xaaaaaa,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+            blade.position.set(0.3, 0.05, 0);
+            blade.rotation.z = Math.PI / 4;
+            
+            // Axe handle
+            const handleGeometry = new THREE.CylinderGeometry(0.025, 0.025, 0.8, 8);
+            const handleMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x8b4513,
+                roughness: 0.9
+            });
+            const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+            handle.position.set(0, -0.35, 0);
+            handle.rotation.z = Math.PI / 4;
+            
+            playerAxeGroup.add(blade);
+            playerAxeGroup.add(handle);
+            playerAxeGroup.position.set(0.2, 0, 0);
+            playerAxeGroup.rotation.y = Math.PI; // Rotate to face forward
+            
+            // Add axe to right hand
+            rightArm.add(playerAxeGroup);
+            
+            // Make arms invisible until axe is collected
+            armsGroup.visible = false;
+            
+            // Add to camera
+            camera.add(armsGroup);
+            
+            return { armsGroup, axeGroup: playerAxeGroup };
+        }
+        
+        // Create player arms with axe
+        const playerArms = createPlayerArms();
+        armsModel = playerArms.armsGroup;
+        axeModel = playerArms.axeGroup;
+        
         // ——————————————————————
         // 5️⃣ Snow Particle System
         // ——————————————————————
@@ -1013,6 +1279,122 @@
             return false;
         }
         
+        // NEW: Check axe collectible
+        function checkAxeCollectible() {
+            if (axeCollectible.userData.collected) return;
+            
+            const playerPos = controls.getObject().position;
+            const axePos = axeCollectible.position;
+            const distance = playerPos.distanceTo(axePos);
+            
+            if (distance < 2) {
+                collectAxe();
+            }
+        }
+        
+        // NEW: Collect axe function
+        function collectAxe() {
+            axeCollectible.userData.collected = true;
+            scene.remove(axeCollectible);
+            
+            hasAxe = true;
+            weaponName.textContent = "ANCIENT AXE";
+            weaponName.style.color = "#4db8ff";
+            
+            // Make arms visible
+            armsModel.visible = true;
+            
+            // Show weapon notification
+            weaponNotification.style.display = 'block';
+            setTimeout(() => {
+                weaponNotification.style.display = 'none';
+            }, 3000);
+            
+            // Show weapon hint
+            weaponHint.style.display = 'block';
+            setTimeout(() => {
+                weaponHint.style.display = 'none';
+            }, 5000);
+            
+            // Play collect sound
+            playSound('weapon_pickup', 0.8);
+        }
+        
+        // NEW: Attack with axe
+        function attackWithAxe() {
+            if (!hasAxe || isAttacking) return;
+            
+            const time = clock.getElapsedTime();
+            if (time - lastAttackTime < attackCooldown) return;
+            
+            isAttacking = true;
+            lastAttackTime = time;
+            
+            // Play attack sound
+            playSound('axe_swing', 0.7);
+            
+            // Add swing animation to axe
+            axeModel.classList = 'axe-swing';
+            setTimeout(() => {
+                axeModel.classList = '';
+            }, 400);
+            
+            // Simulate hit detection
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(), camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+            
+            if (intersects.length > 0) {
+                const hitPoint = intersects[0].point;
+                const distance = controls.getObject().position.distanceTo(hitPoint);
+                
+                if (distance < 3) {
+                    // Show damage indicator
+                    damageIndicator.style.opacity = '1';
+                    damageIndicator.textContent = `-${Math.floor(Math.random() * 10) + 10}`;
+                    damageIndicator.style.transform = 'translate(-50%, -50%)';
+                    
+                    // Play hit sound
+                    playSound('axe_hit', 0.8);
+                    
+                    // Fade out damage indicator
+                    setTimeout(() => {
+                        damageIndicator.style.opacity = '0';
+                        damageIndicator.style.transform = 'translate(-50%, -60%)';
+                    }, 1000);
+                }
+            }
+            
+            // Reset attack state
+            setTimeout(() => {
+                isAttacking = false;
+            }, 400);
+        }
+        
+        // NEW: Block with axe
+        function blockWithAxe() {
+            if (!hasAxe || isAttacking) return;
+            
+            isBlocking = true;
+            blockStamina = 100;
+            
+            // Play block sound
+            playSound('axe_block', 0.6);
+            
+            // Visual feedback for blocking
+            axeModel.position.z = -0.1;
+            axeModel.rotation.x = Math.PI / 3;
+        }
+        
+        // NEW: Stop blocking
+        function stopBlocking() {
+            if (!hasAxe) return;
+            
+            isBlocking = false;
+            axeModel.position.z = 0;
+            axeModel.rotation.x = 0;
+        }
+        
         // Keyboard controls
         document.addEventListener('keydown', e => {
             if (!gameStarted) return;
@@ -1059,6 +1441,30 @@
                 stopSound(sprintSoundSource); // Stop the sprint sound when key is released
                 sprintSoundSource = null;
             }
+        });
+        
+        // NEW: Mouse controls for weapon
+        document.addEventListener('mousedown', e => {
+            if (!gameStarted || !hasAxe) return;
+            
+            if (e.button === 0) { // Left click
+                attackWithAxe();
+            } else if (e.button === 2) { // Right click
+                blockWithAxe();
+            }
+        });
+        
+        document.addEventListener('mouseup', e => {
+            if (!gameStarted || !hasAxe) return;
+            
+            if (e.button === 2) { // Right click
+                stopBlocking();
+            }
+        });
+        
+        // Prevent context menu on right click
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
         });
         
         // ——————————————————————
@@ -1241,6 +1647,15 @@
                 
                 // Update snow particles
                 updateSnowParticles(dt);
+                
+                // NEW: Update axe collectible
+                if (!axeCollectible.userData.collected) {
+                    axeCollectible.rotation.y += dt * 1.5;
+                    axeCollectible.position.y = 7 + Math.sin(time * 2) * 0.5;
+                }
+                
+                // NEW: Check for axe collectible
+                checkAxeCollectible();
             } else {
                 // Intro camera animation
                 camera.position.x = Math.sin(time * 0.2) * 10;
@@ -1271,6 +1686,12 @@
                 0% { transform: scale(0); opacity: 0.8; }
                 50% { transform: scale(1.5); opacity: 0; }
                 100% { transform: scale(1.5); opacity: 0; }
+            }
+            
+            @keyframes swingAxe {
+                0% { transform: rotate(0deg) translate(0, 0); }
+                50% { transform: rotate(-45deg) translate(-0.2, -0.2); }
+                100% { transform: rotate(0deg) translate(0, 0); }
             }
         `;
         document.head.appendChild(style);
